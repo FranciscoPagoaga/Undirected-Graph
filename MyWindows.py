@@ -1,10 +1,31 @@
+from PyQt5 import QtGui
 from Undirected_Graph import Vertex, Graph 
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QWidget
-from PyQt5.QtGui import QPainter, QBrush, QPen
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
 import sys
 import re
-    
+import networkx as nx
+import matplotlib.pyplot as plt
+
+def drawGraph(vertices, edges, path):
+    G=nx.Graph()
+    G.add_nodes_from(vertices)
+    G.add_edges_from(edges)
+    print(G.nodes())
+    color_map = []
+    for node in G:
+        if node in path:
+            color_map.append('green')
+        else:
+            color_map.append('red')
+    nx.draw(G,with_labels = True, node_color=color_map)    
+    plt.savefig("path_graph1.png")
+    plt.show()  
+
+
+
 class Window(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -67,16 +88,12 @@ class Window(QMainWindow):
         self.labelGraphDegree.move(50,240)
         self.labelGraphDegree.setMaximumWidth(500)
         self.labelGraphDegree.setFixedWidth(500)
-# (AC)(AD)(BC)(BD)
-        self.show()
 
-    def paintEvent(self, event):
-        pen= QPen()
-        pen.setWidth(5)
-        painter = QPainter(self)
-        painter.setPen(pen)
-        painter.drawRect(50,300,700,450)
+        self.show()
     
+    
+
+
     def getGraphs(self):
         g = Graph()
         vertices = self.inputVertex.toPlainText().split(",")
@@ -84,9 +101,13 @@ class Window(QMainWindow):
             g.addVertex(Vertex (vertex))
         edges = self.inputEdges.toPlainText()
         edgesSorted = re.findall(r'\(.*?\)', edges)
+        i=0
+        edgesDrawing = []
         for edge in edgesSorted:
             edge = edge.replace('(','')
             edge = edge.replace(')','')
+            edgesSorted[i] = edge
+            edgesDrawing.append((edge[:1], edge[1:]))
             g.addEdge(edge[:1], edge[1:])
         g.printGraph()
         lowestDegree, lowestVertex = g.lowestDegree()
@@ -95,56 +116,11 @@ class Window(QMainWindow):
         self.labelLowestDegree.setText("El grado del vertice " + lowestVertex + " es el menor con un grado: " +str(lowestDegree))
         self.labelDegreeSum.setText("Suma de los grados: "+str(sumDegree))
         self.labelGraphDegree.setText("El grado del grafo: "+ str(graphDegree))
-
-
+        x = g.shortestPath('A','C')
+        drawGraph(vertices,edgesDrawing,x)
         
-        
-        
-        
-
-# def window():
-#     app = QApplication(sys.argv)
-#     win = QMainWindow()
-#     win.setGeometry(700,200,800,800)
-#     win.setWindowTitle("Grafo No Dirigido")
-
-#     labelEdges = QtWidgets.QLabel(win)
-#     labelEdges.setText("Enter Edges:")
-#     labelEdges.move(50,20)
-
-#     inputEdges = QtWidgets.QTextEdit(win)
-#     inputEdges.setPlaceholderText("Ex: A,B,C,D,E")
-#     inputEdges.setMaximumWidth(500)
-#     inputEdges.setFixedWidth(500)
-#     inputEdges.move(50,50)
-
-#     labelVertex = QtWidgets.QLabel(win)
-#     labelVertex.setText("Enter Vertex")
-#     labelVertex.move(50,80)
-
-#     inputEdges = QtWidgets.QTextEdit(win)
-#     inputEdges.setPlaceholderText("Ex: (A,B),(A,C),(B,C)")
-#     inputEdges.setMaximumWidth(500)
-#     inputEdges.setFixedWidth(500)
-#     inputEdges.move(50,110)
-
-#     submitButton = QtWidgets.QPushButton(win)
-#     submitButton.setText("Get Undirected Graph")
-#     submitButton.setMaximumWidth(200)
-#     submitButton.setFixedWidth(190)
-#     submitButton.move(50,160)
-
-#     pen= QPen()
-#     pen.setWidth(10)
-#     painter = QPainter(win)
-#     painter.setPen(pen)
-#     painter.drawEllipse(300,300,100,100)
-
-#     win.show()
-#     sys.exit(app.exec_())
 
 App = QApplication(sys.argv)
-
 window = Window()
 
 sys.exit(App.exec())
