@@ -9,20 +9,35 @@ import re
 import networkx as nx
 import matplotlib.pyplot as plt
 
-def drawGraph(vertices, edges, path):
-    G=nx.Graph()
+edgesPath = ""
+verticesPath = ""
+
+
+def drawGraph(vertices, edges):
+    G = nx.Graph()
+    plt.close()
     G.add_nodes_from(vertices)
     G.add_edges_from(edges)
-    print(G.nodes())
-    color_map = []
+    nx.draw(G,with_labels = True)    
+    plt.savefig("path_graph1.png")
+    plt.show()  
+
+def drawPath(path=[]):
+    G = nx.Graph()
+    G.add_nodes_from(verticesPath)
+    G.add_edges_from(edgesPath)
+    plt.close()
+    color_map = []        
     for node in G:
         if node in path:
             color_map.append('green')
         else:
             color_map.append('red')
-    nx.draw(G,with_labels = True, node_color=color_map)    
+    nx.draw(G,with_labels = True, node_color=color_map)
     plt.savefig("path_graph1.png")
-    plt.show()  
+    plt.show()
+            
+
 
 
 
@@ -89,38 +104,79 @@ class Window(QMainWindow):
         self.labelGraphDegree.setMaximumWidth(500)
         self.labelGraphDegree.setFixedWidth(500)
 
+
+        self.labelPath = QtWidgets.QLabel(self)
+        self.labelPath.setText("Enter Path:")
+        self.labelPath.move(50,280)
+        self.labelPath.setVisible(False)
+
+        self.inputPath = QtWidgets.QTextEdit(self)
+        self.inputPath.setPlaceholderText("Ex: A,B")
+        self.inputPath.setMaximumWidth(500)
+        self.inputPath.setFixedWidth(500)
+        self.inputPath.move(50,310)
+        self.inputPath.setVisible(False)
+
+        self.submitPath = QtWidgets.QPushButton(self)
+        self.submitPath.setText("Get Path")
+        self.submitPath.setMaximumWidth(200)
+        self.submitPath.setFixedWidth(190)
+        self.submitPath.move(50,350)
+        self.submitPath.setVisible(False)
+        self.submitPath.clicked.connect(self.getPath)
+
         self.show()
     
     
 
 
     def getGraphs(self):
-        g = Graph()
         vertices = self.inputVertex.toPlainText().split(",")
         for vertex in vertices:
             g.addVertex(Vertex (vertex))
         edges = self.inputEdges.toPlainText()
         edgesSorted = re.findall(r'\(.*?\)', edges)
-        i=0
         edgesDrawing = []
+        isValid = True
         for edge in edgesSorted:
             edge = edge.replace('(','')
             edge = edge.replace(')','')
-            edgesSorted[i] = edge
-            edgesDrawing.append((edge[:1], edge[1:]))
-            g.addEdge(edge[:1], edge[1:])
-        g.printGraph()
-        lowestDegree, lowestVertex = g.lowestDegree()
-        sumDegree = g.sumDegree()
-        graphDegree = g.graphDegree()
-        self.labelLowestDegree.setText("El grado del vertice " + lowestVertex + " es el menor con un grado: " +str(lowestDegree))
-        self.labelDegreeSum.setText("Suma de los grados: "+str(sumDegree))
-        self.labelGraphDegree.setText("El grado del grafo: "+ str(graphDegree))
-        x = g.shortestPath('A','C')
-        drawGraph(vertices,edgesDrawing,x)
-        
+            if(edge[:1] in vertices and edge[1:] in vertices):
+                edgesDrawing.append((edge[:1], edge[1:]))
+                g.addEdge(edge[:1], edge[1:])
+            else:
+                isValid = False
+        if(isValid):
+            lowestDegree, lowestVertex = g.lowestDegree()
+            sumDegree = g.sumDegree()
+            graphDegree = g.graphDegree()
+            drawGraph(vertices,edgesDrawing)
+            global edgesPath
+            edgesPath = edgesDrawing
+            global verticesPath 
+            verticesPath = vertices
+            self.labelLowestDegree.setText("El grado del vertice " + lowestVertex + " es el menor con un grado: " +str(lowestDegree))
+            self.labelDegreeSum.setText("Suma de los grados: "+str(sumDegree))
+            self.labelGraphDegree.setText("El grado del grafo: "+ str(graphDegree))
+            g.printGraph()
+            self.labelPath.setVisible(True)
+            self.inputPath.setVisible(True)
+            self.submitPath.setVisible(True)
+            
 
-App = QApplication(sys.argv)
-window = Window()
+    
+    def getPath(self):
+        input = self.inputPath.toPlainText().split(",")
+        if(len(input)==2):
+            path = g.shortestPath(input[0],input[1])
+            drawPath(path)              
+          
 
-sys.exit(App.exec())
+if __name__ == '__main__':
+    G=nx.Graph()
+    g = Graph()
+    
+    App = QApplication(sys.argv)
+    window = Window()
+
+    sys.exit(App.exec())
