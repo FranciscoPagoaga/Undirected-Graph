@@ -51,9 +51,9 @@ class Window(QMainWindow):
 
         self.left = 200
 
-        self.width = 800
+        self.width = 600
 
-        self.height = 800
+        self.height = 500
 
         self.InitWindow()
     
@@ -104,24 +104,28 @@ class Window(QMainWindow):
         self.labelGraphDegree.setMaximumWidth(500)
         self.labelGraphDegree.setFixedWidth(500)
 
+        self.labelCycle = QtWidgets.QLabel(self)
+        self.labelCycle.move(50,260)
+        self.labelCycle.setMaximumWidth(500)
+        self.labelCycle.setFixedWidth(500)
 
         self.labelPath = QtWidgets.QLabel(self)
         self.labelPath.setText("Enter Path:")
-        self.labelPath.move(50,280)
+        self.labelPath.move(50,300)
         self.labelPath.setVisible(False)
 
         self.inputPath = QtWidgets.QTextEdit(self)
         self.inputPath.setPlaceholderText("Ex: A,B")
         self.inputPath.setMaximumWidth(500)
         self.inputPath.setFixedWidth(500)
-        self.inputPath.move(50,310)
+        self.inputPath.move(50,340)
         self.inputPath.setVisible(False)
 
         self.submitPath = QtWidgets.QPushButton(self)
         self.submitPath.setText("Get Path")
         self.submitPath.setMaximumWidth(200)
         self.submitPath.setFixedWidth(190)
-        self.submitPath.move(50,350)
+        self.submitPath.move(50,380)
         self.submitPath.setVisible(False)
         self.submitPath.clicked.connect(self.getPath)
 
@@ -131,6 +135,8 @@ class Window(QMainWindow):
 
 
     def getGraphs(self):
+        global g
+        g = Graph()
         vertices = self.inputVertex.toPlainText().split(",")
         for vertex in vertices:
             g.addVertex(Vertex (vertex))
@@ -158,7 +164,10 @@ class Window(QMainWindow):
             self.labelLowestDegree.setText("El grado del vertice " + lowestVertex + " es el menor con un grado: " +str(lowestDegree))
             self.labelDegreeSum.setText("Suma de los grados: "+str(sumDegree))
             self.labelGraphDegree.setText("El grado del grafo: "+ str(graphDegree))
-            g.printGraph()
+            if g.cycle_exists():
+                self.labelCycle.setText("El grafo tiene ciclo")
+            else:
+                self.labelCycle.setText("El grafo no tiene ciclo")
             self.labelPath.setVisible(True)
             self.inputPath.setVisible(True)
             self.submitPath.setVisible(True)
@@ -169,7 +178,7 @@ class Window(QMainWindow):
         input = self.inputPath.toPlainText().split(",")
         if(len(input)==2):
             path = g.shortestPath(input[0],input[1])
-            drawPath(path)              
+            drawPath(path)
           
 
 if __name__ == '__main__':
